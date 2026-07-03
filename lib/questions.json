@@ -1,0 +1,116 @@
+[
+        {
+            "type": "multiple",
+            "difficulty": "medium",
+            "category": "Entertainment: Film",
+            "question": "Which famous singer was portrayed by actor Kevin Spacey in the 2004 biographical film &quot;Beyond the Sea&quot;?",
+            "correct_answer": "Bobby Darin",
+            "incorrect_answers": [
+                "Louis Armstrong",
+                "Frank Sinatra",
+                "Dean Martin"
+            ]
+        },
+        {
+            "type": "boolean",
+            "difficulty": "easy",
+            "category": "Entertainment: Film",
+            "question": "George Lucas directed the entire original Star Wars trilogy.",
+            "correct_answer": "False",
+            "incorrect_answers": [
+                "True"
+            ]
+        },
+        {
+            "type": "multiple",
+            "difficulty": "medium",
+            "category": "Entertainment: Video Games",
+            "question": "How many permanent companions are there in the base game version of Fallout: New Vegas?",
+            "correct_answer": "8",
+            "incorrect_answers": [
+                "7",
+                "9",
+                "6"
+            ]
+        },
+        {
+            "type": "multiple",
+            "difficulty": "easy",
+            "category": "Entertainment: Music",
+            "question": "What band featured Sting, Stewart Copeland and Andy Summers?",
+            "correct_answer": "The Police",
+            "incorrect_answers": [
+                "Def Leppard",
+                "The Cure",
+                "Bon Jovi"
+            ]
+        },
+        {
+            "type": "multiple",
+            "difficulty": "easy",
+            "category": "Geography",
+            "question": "Harvard University is located in which city?",
+            "correct_answer": "Cambridge",
+            "incorrect_answers": [
+                "Providence",
+                "New York",
+                "Washington D.C."
+            ]
+        },
+        {
+            "type": "boolean",
+            "difficulty": "medium",
+            "category": "Politics",
+            "question": "In France, a hunting license or a sport-shooting license is needed to purchase any firearm.",
+            "correct_answer": "True",
+            "incorrect_answers": [
+                "False"
+            ]
+        },
+        {
+            "type": "multiple",
+            "difficulty": "medium",
+            "category": "Entertainment: Film",
+            "question": "What is the name of the Artificial Intelligence system in the 1983 film, &quot;WarGames&quot;?",
+            "correct_answer": "War Operation Plan Response",
+            "incorrect_answers": [
+                "Self Evolving Thought Helix",
+                "Master Control Program",
+                "West Campus Analog Computer"
+            ]
+        },
+        {
+            "type": "boolean",
+            "difficulty": "easy",
+            "category": "Science &amp; Nature",
+            "question": "An exothermic reaction is a chemical reaction that releases energy by radiating electricity.",
+            "correct_answer": "False",
+            "incorrect_answers": [
+                "True"
+            ]
+        },
+        {
+            "type": "multiple",
+            "difficulty": "easy",
+            "category": "Entertainment: Video Games",
+            "question": "Which of these covert groups employs Sam Fisher to work as a Splinter Cell?",
+            "correct_answer": "Third Echelon",
+            "incorrect_answers": [
+                "Voron",
+                "Black Arrow",
+                "The Engineers"
+            ]
+        },
+        {
+            "type": "multiple",
+            "difficulty": "hard",
+            "category": "Entertainment: Music",
+            "question": "The song &quot;Old Town Road&quot; by American rapper Lil Nas X samples the song &quot;34 Ghosts IV&quot; by which band?",
+            "correct_answer": "Nine Inch Nails",
+            "incorrect_answers": [
+                "Death Grips",
+                "Iron Maiden",
+                "Animal Collective"
+            ]
+        }
+    ]
