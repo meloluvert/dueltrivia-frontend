@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -7,7 +7,6 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "@/components/ui/dialog"
 
 export type Question = {
@@ -21,152 +20,110 @@ export type Question = {
 
 type Props = {
     questions: Question[]
+    open: boolean
+    onOpenChange: (open: boolean) => void
 }
 
-export function DialogQuiz({ questions }: Props) {
-    const [current, setCurrent] = useState(0)
-    const [respostas, setAnswers] = useState<Record<number, { resposta: string; marcada: boolean }>>({})
+export function DialogQuiz({ questions, open, onOpenChange }: Props) {
+    const [atual, setAtual] = useState(0)
+    const [respostas, setRespostas] = useState<Record<number, { resposta: string; marcada: boolean }>>({})
 
-    const shuffledQuestions = useMemo(() => {
-        return [...questions].sort(() => Math.random() - 0.5)
-    }, [questions])
+    // Resetar estados quando o Dialog abrir
+    useEffect(() => {
+        if (open) {
+            setAtual(0)
+            setRespostas({})
+        }
+    }, [open])
 
-    const question = shuffledQuestions[current]
+    const perguntasAleatorias = useMemo(() => [...questions].sort(() => Math.random() - 0.5), [questions, open])
 
-    const options = useMemo(() => {
-        return [
-            question.correct_answer,
-            ...question.incorrect_answers,
-        ].sort(() => Math.random() - 0.5)
-    }, [question])
+    const mapaOpcoes = useMemo(() => {
+        return perguntasAleatorias.map((q) =>
+            [q.correct_answer, ...q.incorrect_answers].sort(() => Math.random() - 0.5)
+        )
+    }, [perguntasAleatorias])
 
-    function handleAnswer(answer: string) {
-        setAnswers((prev) => ({
-            ...prev,
-            [current]: { resposta: answer, marcada: false },
+    const questao = perguntasAleatorias[atual]
+    const opcoes = mapaOpcoes[atual]
+
+    function handleSelecionar(opcao: string) {
+        setRespostas((anteriores) => ({
+            ...anteriores,
+            [atual]: { resposta: opcao, marcada: false },
         }))
     }
 
-    function proximo() {
-        if (current < shuffledQuestions.length - 1) {
-            setCurrent(current + 1)
-        }
-    }
-
-    function anterior() {
-        if (current > 0) {
-            setCurrent(current - 1)
-        }
-    }
-
-    function handleSubmit(e: React.FormEvent) {
-        e.preventDefault()
-        console.log(respostas)
-    }
     function handleMarcar() {
-        if (!respostas[current]) return
-
-        setAnswers((prev) => ({
-            ...prev,
-            [current]: {
-                ...prev[current],
-                marcada: true,
-            },
+        if (!respostas[atual]) return
+        setRespostas((anteriores) => ({
+            ...anteriores,
+            [atual]: { ...anteriores[atual], marcada: true },
         }))
     }
 
+    function proximo() { if (atual < perguntasAleatorias.length - 1) setAtual(atual + 1) }
+    function anterior() { if (atual > 0) setAtual(atual - 1) }
 
+    function decode(text: string) {
+        const textarea = document.createElement("textarea")
+        textarea.innerHTML = text
+        return textarea.value
+    }
 
     return (
-        <Dialog>
-            <DialogTrigger asChild>
-                <Button className={'bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition duration-200'}>Iniciar Quiz</Button>
-            </DialogTrigger>
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="bg-black text-white">
+                <DialogHeader>
+                    <DialogTitle>Pergunta {atual + 1} de {perguntasAleatorias.length}</DialogTitle>
+                </DialogHeader>
 
-            <DialogContent className={'bg-black'}>
-                <form onSubmit={handleSubmit}>
-                    <DialogHeader>
-                        <DialogTitle>
-                            Pergunta {current + 1} de {shuffledQuestions.length}
-                        </DialogTitle>
-                    </DialogHeader>
+                <p>{`${decode(questao.category)} | ${decode(questao.difficulty)}`}</p>
+                <h2 className="my-6 text-lg">{decode(questao.question)}</h2>
 
-                    <h2 className="my-6 text-lg">{question.question}</h2>
+                <div className="space-y-2">
+                    {opcoes.map((opcao) => {
+                        const respostaAtual = respostas[atual]
+                        const estaSelecionada = respostaAtual?.resposta === opcao
+                        const estaMarcada = respostaAtual?.marcada
+                        const estaCorreta = opcao === questao.correct_answer
 
-                    <div className="space-y-2">
-                        {options.map((option) => {
-                            const marcada = respostas[current]?.marcada
-                            const resposta = respostas[current]?.resposta
+                        let classeBorda = "border-gray-500"
+                        if (estaMarcada) {
+                            if (estaCorreta) classeBorda = "border-green-500 bg-green-900/20"
+                            else if (estaSelecionada) classeBorda = "border-red-500 bg-red-900/20"
+                        } else if (estaSelecionada) {
+                            classeBorda = "border-yellow-500"
+                        }
 
-                            let cor = "border-gray-300"
-
-                            if (!marcada && resposta === option) {
-                                cor = "border-yellow-500"
-                            }
-
-                            if (marcada) {
-                                if (option === question.correct_answer) {
-                                    cor = "border-green-500"
-                                } else if (resposta === option) {
-                                    cor = "border-red-500"
-                                }
-                            }
-
-                            return (
-
-                                <Button
-                                    key={option}
-                                    type="button"
-                                    variant={
-                                        respostas[current]?.resposta === option ? "default" : "outline"
-                                    }
-                                    disabled={respostas[current]?.marcada}
-                                    className={`w-full justify-start border-2 ${cor}`}
-
-                                    onClick={() => handleAnswer(option)}
-                                >
-                                    {option}
-                                </Button>
-                            )
-                        })}
-                    </div>
-
-                    <DialogFooter className="mt-6">
-                        <DialogClose asChild>
-                            <Button variant="ghost">
-                                Cancelar
-                            </Button>
-                        </DialogClose>
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={anterior}
-                            disabled={current === 0}
-                        >
-                            Anterior
-                        </Button>
-
-                        {current < shuffledQuestions.length - 1 ? (
+                        return (
                             <Button
-                                type="button"
-                                onClick={proximo}
+                                key={opcao}
+                                disabled={estaMarcada}
+                                className={`w-full justify-start border-2 bg-black text-white hover:border-white hover:bg-black ${classeBorda}`}
+                                onClick={() => handleSelecionar(opcao)}
                             >
-                                Próximo
+                                {decode(opcao)}
                             </Button>
-                        ) : (
-                            <Button type="submit">
-                                Enviar
-                            </Button>
-                        )}
+                        )
+                    })}
+                </div>
 
-                        <Button
-                            onClick={handleMarcar}>
+                <DialogFooter className="mt-6 flex justify-between">
+                    {/* <DialogClose>Cancelar</DialogClose> */}
+                    <div className="flex gap-2">
+                        <Button ><DialogClose>Cancelar</DialogClose></Button>
+                        <Button onClick={anterior} disabled={atual === 0}>Anterior</Button>
+                        {atual < perguntasAleatorias.length - 1 ? (
+                            <Button onClick={proximo}>Próximo</Button>
+                        ) : (
+                            <Button onClick={() => console.log(respostas)}>Enviar</Button>
+                        )}
+                        <Button onClick={handleMarcar} disabled={!respostas[atual] || respostas[atual].marcada}>
                             Marcar
                         </Button>
-
-
-                    </DialogFooter>
-                </form>
+                    </div>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
     )

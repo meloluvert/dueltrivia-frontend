@@ -1,11 +1,18 @@
 "use client"
 
+import { useAuth } from "@/contexts/AuthContext"
+import { redirect } from "next/dist/server/api-utils"
 import { useState } from "react"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 export default function Login() {
+  const { signIn } = useAuth()
   const [email, setEmail] = useState("")
   const [senha, setSenha] = useState("")
+  
+  const router = useRouter()
+
 
   function validar() {
     const e = email.trim().toLowerCase()
@@ -24,17 +31,22 @@ export default function Login() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
-      <h1 className="text-4xl font-bold mb-6">Entre no sistema!</h1>
+      <h1 className="text-4xl font-bold text-white mb-6">Entre no sistema!</h1>
 
       <form
         className="bg-black p-6 rounded shadow-md w-full max-w-sm"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault()
           if (!validar()) return
-
-          toast.success("Login validado com sucesso!")
-          setEmail("")
-          setSenha("")
+          try {
+            await signIn({email, password: senha});
+            toast.success("Login validado com sucesso!")
+            setEmail("")
+            setSenha("")
+            router.push('/')
+          } catch (error) {
+            toast.error("Erro ao fazer login.")
+          }
         }}
       >
         <div className="mb-4">
@@ -45,7 +57,7 @@ export default function Login() {
             type="email"
             id="email"
             name="email"
-            className="w-full px-3 py-2 border rounded"
+            className="w-full px-3 py-2 border rounded text-white"
             placeholder="Digite seu email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -60,7 +72,7 @@ export default function Login() {
             type="password"
             id="password"
             name="password"
-            className="w-full px-3 py-2 border rounded"
+            className="w-full px-3 py-2 border rounded text-white"
             placeholder="Digite sua senha"
             value={senha}
             onChange={(e) => setSenha(e.target.value)}

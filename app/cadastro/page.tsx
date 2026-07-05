@@ -2,8 +2,10 @@
 
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function Cadastro() {
+  const { signUp } = useAuth()
   const [nome, setNome] = useState("")
   const [email, setEmail] = useState("")
   const [senha, setSenha] = useState("")
@@ -48,6 +50,7 @@ export default function Cadastro() {
         onSubmit={(e) => {
           e.preventDefault()
           if (!validar()) return
+          signUp({ name: nome, email, password: senha })
 
           toast.success("Cadastro validado com sucesso!")
           setNome("")
