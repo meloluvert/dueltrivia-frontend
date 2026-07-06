@@ -3,7 +3,7 @@ import axios from "axios";
 export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
 });
-
+import type { IQuestion, IQuestionsResponse } from "@/types/question";
 api.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
     const token = localStorage.getItem("@token-trivia");
@@ -16,43 +16,29 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-export type Question = {
-  id?:number
-statement?: string;
-
-  question?: string;
-  difficulty: string;
-  category: string;
-  correct_answer: string;
-  incorrect_answers: string[];
-};
-
-type QuestionsResponse = {
-  questions: Question[];
-};
-
-export async function getTriviaQuestions(): Promise<Question[]> {
-  const { data } = await api.get<QuestionsResponse>("/trivia");
+export async function getTriviaQuestions(): Promise<IQuestion[]> {
+  const { data } = await api.get<IQuestionsResponse>("/trivia");
   return data.questions;
 }
 
-export async function getUsersQuestions(): Promise<Question[]> {
-  const { data } = await api.get<QuestionsResponse>("/questions");
+export async function getUsersQuestions(): Promise<IQuestion[]> {
+  const { data } = await api.get<IQuestionsResponse>("/questions");
   return data.questions;
 }
 
-export async function createQuestion(question:Question): Promise<{question:Question}> {
-  const { data } = await api.post<{question:Question}>("/questions", question);
+export async function createQuestion(question: IQuestion): Promise<{ question: IQuestion }> {
+  const { data } = await api.post<{ question: IQuestion }>("/questions", question);
   return data;
 }
 
-export async function updateQuestion(id:number,question:Question): Promise<{question:Question}> {
+export async function updateQuestion(id: number, question: IQuestion): Promise<{ question: IQuestion }> {
   console.log(id, question)
-  const { data } = await api.put<{question:Question}>("/questions/" + id, question);
+  const { data } = await api.put<{ question: IQuestion }>("/questions/" + id, question);
   return data;
 }
-export async function deleteQuestion(id:number): Promise<{question:Question}> {
-  const { data } = await api.delete<{question:Question}>("/questions/" + id);
+
+export async function deleteQuestion(id: number): Promise<{ question: IQuestion }> {
+  const { data } = await api.delete<{ question: IQuestion }>("/questions/" + id);
   return data;
 }
 

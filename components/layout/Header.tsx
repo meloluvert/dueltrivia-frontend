@@ -31,7 +31,7 @@ export default function Header() {
 
   return (
     <header className="bg-blue-800 text-white p-4 flex items-center justify-between">
-      <Link href={'/'} className="text-2xl font-bold">Duel (or single) Trivia</Link>
+      <Link href={'/'} className="text-2xl font-bold"> <s>Duel</s> SingleTrivia</Link>
 
       {user ? (
         <>
@@ -91,7 +91,10 @@ export default function Header() {
           </AlertDialog>
         </>
       ) : (
+        <div className="flex gap-2">
         <Link href="/login" className="text-white hover:text-gray-400">Login</Link>
+        <Link href="/cadastro" className="text-white hover:text-gray-400">Cadastro</Link>
+        </div>
       )}
     </header>
   );

@@ -8,48 +8,16 @@ import {
 } from "react";
 import localStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-
+import {IAuthContext, ILoginRequest, IRegisterRequest,IUser} from "@/types/auth";
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
 });
-type User = {
-  id: string;
-  name: string;
-  email: string;
-};
 
-type RegisterDTO = {
-  name: string;
-  email: string;
-  password: string;
-};
 
-type LoginDTO = {
-  email: string;
-  password: string;
-};
-
-type AuthContextType = {
-  user: User | null;
-  token: string | null;
-  loading: boolean;
-  authenticated: boolean;
-
-  signIn(data: LoginDTO): Promise<void>;
-  signUp(data: RegisterDTO): Promise<void>;
-  signOut(): Promise<void>;
-
-  getUser(): Promise<void>;
-  updateUser(data: Partial<RegisterDTO>): Promise<void>;
-  deleteUser(): Promise<void>;
-
-  sendResult(result: "win" | "lose" | "draw"): Promise<void>;
-};
-
-const AuthContext = createContext({} as AuthContextType);
+const AuthContext = createContext({} as IAuthContext);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<IUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -72,12 +40,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data } = await api.get("/users");
 
       setUser(data.user);
+    } catch (e) { 
+
     } finally {
       setLoading(false);
     }
   }
 
-  async function signUp(data: RegisterDTO) {
+  async function signUp(data: IRegisterRequest) {
     const response = await api.post("/users", data);
 
     const token = response.data.token;
@@ -91,7 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(user);
   }
 
-  async function signIn(data: LoginDTO) {
+  async function signIn(data: ILoginRequest) {
     const response = await api.post("/users/login", data);
 
     const token = response.data.token;
@@ -111,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(response.data.user);
   }
 
-  async function updateUser(data: Partial<RegisterDTO>) {
+  async function updateUser(data: Partial<IRegisterRequest>) {
     const response = await api.put("/users", data);
 
     setUser(response.data);

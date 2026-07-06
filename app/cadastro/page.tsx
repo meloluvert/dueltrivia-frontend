@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
 import { useAuth } from "@/contexts/AuthContext"
+import Link from "next/link"
 
 export default function Cadastro() {
   const { signUp } = useAuth()
@@ -11,25 +12,23 @@ export default function Cadastro() {
   const [senha, setSenha] = useState("")
   const [senhaConfirm, setSenhaConfirm] = useState("")
 
-  const isEmailValid = useMemo(() => {
-    const e = email.trim().toLowerCase()
-    return e.includes("@") && e.includes(".")
-  }, [email])
 
   function validar() {
+
+    const e = email.trim().toLowerCase()
     const n = nome.trim()
     if (n.length < 3) {
       toast.error("Nome inválido (mínimo 3 caracteres).")
       return false
     }
 
-    if (!isEmailValid) {
+    if (!e.includes("@") || !e.includes(".")) {
       toast.error("Email inválido.")
       return false
     }
 
     if (senha.length < 4) {
-      toast.error("Senha inválida (mínimo 6 caracteres).")
+      toast.error("Senha inválida (mínimo 4 caracteres).")
       return false
     }
 
@@ -43,16 +42,24 @@ export default function Cadastro() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
-      <h1 className="text-4xl font-bold mb-6">cadastre-se!</h1>
-
+      <h1 className="text-4xl font-bold ">Cadastre-se!</h1>
+      <Link href="/login" className="underline">
+        Já tenho conta!
+      </Link>
       <form
         className="bg-black p-6 rounded shadow-md w-full max-w-sm"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault()
           if (!validar()) return
-          signUp({ name: nome, email, password: senha })
+          try {
+            await signUp({ name: nome, email, password: senha })
 
-          toast.success("Cadastro validado com sucesso!")
+            toast.success("Cadastro validado com sucesso!")
+          } catch (error) {
+            toast.error("Erro ao cadastrar. Tente novamente.")
+            console.error("Error during sign up:", error)
+          }
+
           setNome("")
           setEmail("")
           setSenha("")

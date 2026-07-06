@@ -5,6 +5,7 @@ import { redirect } from "next/dist/server/api-utils"
 import { useState } from "react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 export default function Login() {
   const { signIn } = useAuth()
@@ -16,13 +17,17 @@ export default function Login() {
 
   function validar() {
     const e = email.trim().toLowerCase()
+    if(e.trim() === "" || senha.trim() === "") {
+      toast.error("Preencha todos os campos.")
+      return false
+    }
     if (!e.includes("@") || !e.includes(".")) {
       toast.error("Email inválido.")
       return false
     }
 
-    if (senha.length < 6) {
-      toast.error("Senha inválida (mínimo 6 caracteres).")
+    if (senha.length < 4) {
+      toast.error("Senha inválida (mínimo 4 caracteres).")
       return false
     }
 
@@ -31,8 +36,10 @@ export default function Login() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
-      <h1 className="text-4xl font-bold text-white mb-6">Entre no sistema!</h1>
-
+      <h1 className="text-4xl font-bold text-white ">Entre no sistema!</h1>
+      <Link href="/cadastro" className="underline">
+        Não tenho conta!
+      </Link>
       <form
         className="bg-black p-6 rounded shadow-md w-full max-w-sm"
         onSubmit={async (e) => {

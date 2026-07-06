@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { getTriviaQuestions, getUsersQuestions, createQuestion, Question } from "@/lib/api"
+import { getTriviaQuestions, getUsersQuestions, createQuestion } from "@/lib/api"
+import type { IQuestion } from "@/types/question"
 import {
   Dialog,
   DialogContent,
@@ -12,18 +13,18 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import Link from "next/link"
-import { DialogQuiz } from "../components/ModalGame"
+import { DialogQuiz } from "../components/DialogQuiz"
 import { useAuth } from "@/contexts/AuthContext"
 import { Loader2 } from "lucide-react"
 import QuestionCard from "@/components/QuestionCard"
 import { deleteQuestion } from "@/lib/api"
 
 export default function Home() {
-  const [questions, setQuestions] = useState<Question[]>([])
+  const [questions, setQuestions] = useState<IQuestion[]>([])
   const [loading, setLoading] = useState(false)
   const [openQuiz, setOpenQuiz] = useState(false)
   const [openRegister, setOpenRegister] = useState(false)
-  const [userQuestions, setUserQuestions] = useState<Question[]>([])
+  const [userQuestions, setUserQuestions] = useState<IQuestion[]>([])
 
   const { user } = useAuth()
 
@@ -73,7 +74,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center justify-center text-white ">
-      <div className="flex flex-col items-center justify-center text-white py-9">
+      <div className="flex flex-col items-center justify-center pt-9">
         <h1 className="text-5xl font-bold">
           Bem-vindo{user ? `, ${user.name}` : ""}!
         </h1>
@@ -123,7 +124,7 @@ export default function Home() {
               </Link>
               <Link href="/cadastro" className="w-full">
                 <Button className="w-full" variant="outline">
-                  Vou criar uma!
+                  Vou criar uma conta!
                 </Button>
               </Link>
             </DialogFooter>
@@ -132,14 +133,15 @@ export default function Home() {
 
       </div>
       {user && (
-        <>
-          <p className="">Mude as perguntas públicas!</p>
+        <div className="flex flex-col items-center justify-center gap-3 mt-2">
+          <p className="mb-1">Mude as perguntas públicas!</p>
           <div className="flex flex-wrap gap-6 justify-center items-center">
             {userQuestions.map((question, index) => (
               <QuestionCard
                 key={question.id ?? `new-${index}`}
                 question={question}
                 onDelete={(question) => {
+                  console.log("Deleting question:", question);
                   setUserQuestions((prev) =>
                     prev.filter((q) => q !== question)
                   );
@@ -158,7 +160,7 @@ export default function Home() {
               <span className="text-4xl text-">+</span>
             </Button>
           </div>
-        </>
+        </div>
       )}
     </div>
   )

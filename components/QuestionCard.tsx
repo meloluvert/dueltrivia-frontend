@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import type { Question } from "@/lib/api";
-import { updateQuestion, getUsersQuestions } from "@/lib/api";
+import type { IQuestion } from "@/types/question";
+import { updateQuestion } from "@/lib/api";
 import { toast } from "sonner"
 import { createQuestion, deleteQuestion } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,12 +22,12 @@ import {
 } from "@/components/ui/alert-dialog";
 
 type QuestionCardProps = {
-  question: Question;
-  onDelete: (question: Question) => void;
-  onCreated: (oldQuestion: Question, newQuestion: Question) => void;
+  question: IQuestion;
+  onDelete: (question: IQuestion) => void;
+  onCreated: (oldQuestion: IQuestion, newQuestion: IQuestion) => void;
 };
 export default function QuestionCard({ question, onDelete, onCreated }: QuestionCardProps) {
-  const [form, setForm] = useState<Question>({
+  const [form, setForm] = useState<IQuestion>({
     ...question,
     statement: question.statement ?? "",
     incorrect_answers: [...question.incorrect_answers],
@@ -125,7 +125,7 @@ export default function QuestionCard({ question, onDelete, onCreated }: Question
         await deleteQuestion(form.id);
       }
 
-      onDelete(form);
+      onDelete(question); //objeto original para excluir no vetor
 
       toast.success("Pergunta removida.");
     } catch {

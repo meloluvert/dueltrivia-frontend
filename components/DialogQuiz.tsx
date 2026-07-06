@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import type { IQuestion } from "@/types/question"
 import {
     Dialog,
     DialogClose,
@@ -9,30 +10,21 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 
-export type Question = {
-    difficulty: string
-    category: string
-    question?: string
-    statement?: string
-    correct_answer: string
-    incorrect_answers: string[]
-}
-
-type Props = {
-    questions: Question[]
+type DialogQuizProps = {
+    questions: IQuestion[]
     open: boolean
     onOpenChange: (open: boolean) => void
 }
 
-export function DialogQuiz({ questions, open, onOpenChange }: Props) {
+export function DialogQuiz({ questions, open, onOpenChange }: DialogQuizProps) {
     const [atual, setAtual] = useState(0)
     const [respostas, setRespostas] = useState<Record<number, { resposta: string; marcada: boolean }>>({})
-    const [finalText, setFinalText] = useState<string | null>(null)
+    const [scoreText, setScoreText] = useState<string | null>(null)
     useEffect(() => {
         if (open) {
             setAtual(0)
             setRespostas({})
-            setFinalText(null)
+            setScoreText(null)
         }
     }, [open])
 
@@ -62,8 +54,14 @@ export function DialogQuiz({ questions, open, onOpenChange }: Props) {
         }))
     }
 
-    function proximo() { if (atual < perguntasAleatorias.length - 1) setAtual(atual + 1); setFinalText(null) }
-    function anterior() { if (atual > 0) setAtual(atual - 1); setFinalText(null) }
+    function proximo() {
+        if (atual < perguntasAleatorias.length - 1)
+            setAtual(atual + 1); setScoreText(null)
+    }
+    function anterior() {
+        if (atual > 0) setAtual(atual - 1);
+        setScoreText(null)
+    }
 
     function decode(text: string) {
         const textarea = document.createElement("textarea")
@@ -81,7 +79,7 @@ export function DialogQuiz({ questions, open, onOpenChange }: Props) {
 
         const porcentagem = Math.round((acertos / perguntasAleatorias.length) * 100);
 
-        setFinalText(`Você acertou ${acertos} de ${perguntasAleatorias.length} perguntas (${porcentagem}%).`);
+        setScoreText(`Você acertou ${acertos} de ${perguntasAleatorias.length} perguntas (${porcentagem}%).`);
     }
 
     return (
@@ -90,9 +88,9 @@ export function DialogQuiz({ questions, open, onOpenChange }: Props) {
                 <DialogHeader>
                     <DialogTitle>Pergunta {atual + 1} de {perguntasAleatorias.length}</DialogTitle>
                 </DialogHeader>
-                {finalText ? (
+                {scoreText ? (
                     <div className="mt-4">
-                        <p>{finalText}</p>
+                        <p>{scoreText}</p>
                     </div>
                 ) : (
                     <>
@@ -129,9 +127,8 @@ export function DialogQuiz({ questions, open, onOpenChange }: Props) {
                     </>)}
 
                 <DialogFooter className="mt-6 flex justify-between">
-                    {/* <DialogClose>Cancelar</DialogClose> */}
                     <div className="flex gap-2">
-                        <Button ><DialogClose>Cancelar</DialogClose></Button>
+                        <DialogClose>Cancelar</DialogClose>
                         <Button onClick={anterior} disabled={atual === 0}>Anterior</Button>
                         {atual < perguntasAleatorias.length - 1 ? (
                             <Button onClick={proximo}>Próximo</Button>
