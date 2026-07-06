@@ -20,10 +20,12 @@ export function DialogQuiz({ questions, open, onOpenChange }: DialogQuizProps) {
     const [atual, setAtual] = useState(0)
     const [respostas, setRespostas] = useState<Record<number, { resposta: string; marcada: boolean }>>({})
     const [scoreText, setScoreText] = useState<string | null>(null)
+    const [enviado, setEnviado] = useState(false)
     useEffect(() => {
         if (open) {
             setAtual(0)
             setRespostas({})
+            setEnviado(false)
             setScoreText(null)
         }
     }, [open])
@@ -70,7 +72,7 @@ export function DialogQuiz({ questions, open, onOpenChange }: DialogQuizProps) {
     }
     function handleEnviar() {
         let acertos = 0;
-
+        setEnviado(true)
         perguntasAleatorias.forEach((pergunta, index) => {
             if (respostas[index]?.resposta === pergunta.correct_answer) {
                 acertos++;
@@ -129,15 +131,27 @@ export function DialogQuiz({ questions, open, onOpenChange }: DialogQuizProps) {
                 <DialogFooter className="mt-6 flex justify-between">
                     <div className="flex gap-2">
                         <DialogClose>Cancelar</DialogClose>
-                        <Button onClick={anterior} disabled={atual === 0}>Anterior</Button>
-                        {atual < perguntasAleatorias.length - 1 ? (
-                            <Button onClick={proximo}>Próximo</Button>
-                        ) : (
-                            <Button onClick={handleEnviar}>Enviar</Button>//
+
+                        {!enviado && (
+                            <>
+                                <Button onClick={anterior} disabled={atual === 0}>
+                                    Anterior
+                                </Button>
+
+                                {atual < perguntasAleatorias.length - 1 ? (
+                                    <Button onClick={proximo}>Próximo</Button>
+                                ) : (
+                                    <Button onClick={handleEnviar}>Enviar</Button>
+                                )}
+
+                                <Button
+                                    onClick={handleMarcar}
+                                    disabled={!respostas[atual] || respostas[atual].marcada}
+                                >
+                                    Marcar
+                                </Button>
+                            </>
                         )}
-                        <Button onClick={handleMarcar} disabled={!respostas[atual] || respostas[atual].marcada}>
-                            Marcar
-                        </Button>
                     </div>
                 </DialogFooter>
             </DialogContent>
