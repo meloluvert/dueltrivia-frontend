@@ -10,10 +10,10 @@ import {
 } from "@/components/ui/dialog"
 
 export type Question = {
-    type: string
     difficulty: string
     category: string
-    question: string
+    question?: string
+    statement?: string
     correct_answer: string
     incorrect_answers: string[]
 }
@@ -27,12 +27,12 @@ type Props = {
 export function DialogQuiz({ questions, open, onOpenChange }: Props) {
     const [atual, setAtual] = useState(0)
     const [respostas, setRespostas] = useState<Record<number, { resposta: string; marcada: boolean }>>({})
-
-    // Resetar estados quando o Dialog abrir
+    const [finalText, setFinalText] = useState<string | null>(null)
     useEffect(() => {
         if (open) {
             setAtual(0)
             setRespostas({})
+            setFinalText(null)
         }
     }, [open])
 
@@ -62,13 +62,26 @@ export function DialogQuiz({ questions, open, onOpenChange }: Props) {
         }))
     }
 
-    function proximo() { if (atual < perguntasAleatorias.length - 1) setAtual(atual + 1) }
-    function anterior() { if (atual > 0) setAtual(atual - 1) }
+    function proximo() { if (atual < perguntasAleatorias.length - 1) setAtual(atual + 1); setFinalText(null) }
+    function anterior() { if (atual > 0) setAtual(atual - 1); setFinalText(null) }
 
     function decode(text: string) {
         const textarea = document.createElement("textarea")
         textarea.innerHTML = text
         return textarea.value
+    }
+    function handleEnviar() {
+        let acertos = 0;
+
+        perguntasAleatorias.forEach((pergunta, index) => {
+            if (respostas[index]?.resposta === pergunta.correct_answer) {
+                acertos++;
+            }
+        });
+
+        const porcentagem = Math.round((acertos / perguntasAleatorias.length) * 100);
+
+        setFinalText(`Você acertou ${acertos} de ${perguntasAleatorias.length} perguntas (${porcentagem}%).`);
     }
 
     return (
@@ -77,37 +90,43 @@ export function DialogQuiz({ questions, open, onOpenChange }: Props) {
                 <DialogHeader>
                     <DialogTitle>Pergunta {atual + 1} de {perguntasAleatorias.length}</DialogTitle>
                 </DialogHeader>
+                {finalText ? (
+                    <div className="mt-4">
+                        <p>{finalText}</p>
+                    </div>
+                ) : (
+                    <>
+                        <p>{`${decode(questao.category)} | ${decode(questao.difficulty)}`}</p>
+                        <h2 className="my-6 text-lg">{decode(questao.question || questao.statement || "")}</h2>
 
-                <p>{`${decode(questao.category)} | ${decode(questao.difficulty)}`}</p>
-                <h2 className="my-6 text-lg">{decode(questao.question)}</h2>
+                        <div className="space-y-2">
+                            {opcoes.map((opcao) => {
+                                const respostaAtual = respostas[atual]
+                                const estaSelecionada = respostaAtual?.resposta === opcao
+                                const estaMarcada = respostaAtual?.marcada
+                                const estaCorreta = opcao === questao.correct_answer
 
-                <div className="space-y-2">
-                    {opcoes.map((opcao) => {
-                        const respostaAtual = respostas[atual]
-                        const estaSelecionada = respostaAtual?.resposta === opcao
-                        const estaMarcada = respostaAtual?.marcada
-                        const estaCorreta = opcao === questao.correct_answer
+                                let classeBorda = "border-gray-500"
+                                if (estaMarcada) {
+                                    if (estaCorreta) classeBorda = "border-green-500 bg-green-900/20"
+                                    else if (estaSelecionada) classeBorda = "border-red-500 bg-red-900/20"
+                                } else if (estaSelecionada) {
+                                    classeBorda = "border-yellow-500"
+                                }
 
-                        let classeBorda = "border-gray-500"
-                        if (estaMarcada) {
-                            if (estaCorreta) classeBorda = "border-green-500 bg-green-900/20"
-                            else if (estaSelecionada) classeBorda = "border-red-500 bg-red-900/20"
-                        } else if (estaSelecionada) {
-                            classeBorda = "border-yellow-500"
-                        }
-
-                        return (
-                            <Button
-                                key={opcao}
-                                disabled={estaMarcada}
-                                className={`w-full justify-start border-2 bg-black text-white hover:border-white hover:bg-black ${classeBorda}`}
-                                onClick={() => handleSelecionar(opcao)}
-                            >
-                                {decode(opcao)}
-                            </Button>
-                        )
-                    })}
-                </div>
+                                return (
+                                    <Button
+                                        key={opcao}
+                                        disabled={estaMarcada}
+                                        className={`w-full justify-start border-2 bg-black text-white hover:border-white hover:bg-black ${classeBorda}`}
+                                        onClick={() => handleSelecionar(opcao)}
+                                    >
+                                        {decode(opcao)}
+                                    </Button>
+                                )
+                            })}
+                        </div>
+                    </>)}
 
                 <DialogFooter className="mt-6 flex justify-between">
                     {/* <DialogClose>Cancelar</DialogClose> */}
@@ -117,7 +136,7 @@ export function DialogQuiz({ questions, open, onOpenChange }: Props) {
                         {atual < perguntasAleatorias.length - 1 ? (
                             <Button onClick={proximo}>Próximo</Button>
                         ) : (
-                            <Button onClick={() => console.log(respostas)}>Enviar</Button>
+                            <Button onClick={handleEnviar}>Enviar</Button>//
                         )}
                         <Button onClick={handleMarcar} disabled={!respostas[atual] || respostas[atual].marcada}>
                             Marcar

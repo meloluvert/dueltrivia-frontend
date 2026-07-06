@@ -17,10 +17,12 @@ api.interceptors.request.use((config) => {
 });
 
 export type Question = {
-  type: string;
+  id?:number
+statement?: string;
+
+  question?: string;
   difficulty: string;
   category: string;
-  question: string;
   correct_answer: string;
   incorrect_answers: string[];
 };
@@ -29,7 +31,31 @@ type QuestionsResponse = {
   questions: Question[];
 };
 
-export async function getQuestions(): Promise<Question[]> {
+export async function getTriviaQuestions(): Promise<Question[]> {
+  const { data } = await api.get<QuestionsResponse>("/trivia");
+  return data.questions;
+}
+
+export async function getUsersQuestions(): Promise<Question[]> {
   const { data } = await api.get<QuestionsResponse>("/questions");
   return data.questions;
 }
+
+export async function createQuestion(question:Question): Promise<{question:Question}> {
+  const { data } = await api.post<{question:Question}>("/questions", question);
+  return data;
+}
+
+export async function updateQuestion(id:number,question:Question): Promise<{question:Question}> {
+  console.log(id, question)
+  const { data } = await api.put<{question:Question}>("/questions/" + id, question);
+  return data;
+}
+export async function deleteQuestion(id:number): Promise<{question:Question}> {
+  const { data } = await api.delete<{question:Question}>("/questions/" + id);
+  return data;
+}
+
+
+
+

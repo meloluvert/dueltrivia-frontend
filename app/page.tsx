@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { getQuestions, Question } from "@/lib/api"
+import { getTriviaQuestions, getUsersQuestions, createQuestion, Question } from "@/lib/api"
 import {
   Dialog,
   DialogContent,
@@ -12,25 +12,45 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import Link from "next/link"
-import { DialogQuiz } from "./components/ModalGame"
+import { DialogQuiz } from "../components/ModalGame"
 import { useAuth } from "@/contexts/AuthContext"
 import { Loader2 } from "lucide-react"
+import QuestionCard from "@/components/QuestionCard"
+import { deleteQuestion } from "@/lib/api"
 
 export default function Home() {
   const [questions, setQuestions] = useState<Question[]>([])
   const [loading, setLoading] = useState(false)
   const [openQuiz, setOpenQuiz] = useState(false)
   const [openRegister, setOpenRegister] = useState(false)
+  const [userQuestions, setUserQuestions] = useState<Question[]>([])
 
   const { user } = useAuth()
+
+  useEffect(() => {
+    if (user) {
+      getUsersQuestions()
+        .then((data) => setUserQuestions(data))
+        .catch((error) => console.error(error))
+    }
+  }, [user])
 
   async function handleStartQuiz() {
     try {
       setLoading(true)
 
-      const data = await getQuestions()
+      const data = await getTriviaQuestions();
+      const userQuestions = await getUsersQuestions();
 
-      setQuestions(data)
+      if (userQuestions.length > 0) {
+        const randomQuestion =
+          userQuestions[Math.floor(Math.random() * userQuestions.length)];
+        data.pop()
+        data.push(randomQuestion);
+        data.sort(() => Math.random() - 0.5);
+      }
+
+      setQuestions(data);
       setOpenQuiz(true)
     } catch (error) {
       console.error(error)
@@ -38,64 +58,108 @@ export default function Home() {
       setLoading(false)
     }
   }
+  function handleCreateQuestion() {
+    setUserQuestions((prev) => [
+      ...prev,
+      {
+        statement: "",
+        category: "",
+        difficulty: "",
+        correct_answer: "",
+        incorrect_answers: [""],
+      },
+    ]);
+  }
 
   return (
-    <div className="flex flex-col items-center justify-center text-white">
-      <h1 className="text-5xl font-bold">
-        Bem-vindo{user ? `, ${user.name}` : ""}!
-      </h1>
+    <div className="flex flex-col items-center justify-center text-white ">
+      <div className="flex flex-col items-center justify-center text-white py-9">
+        <h1 className="text-5xl font-bold">
+          Bem-vindo{user ? `, ${user.name}` : ""}!
+        </h1>
 
-      <p className="mb-4 text-3xl">
-        Vamos testar seu conhecimento!
-      </p>
+        <p className="mb-4 text-3xl">
+          Vamos testar seu conhecimento!
+        </p>
 
-      {user ? (
-        <>
-          <Button onClick={handleStartQuiz} disabled={loading}>
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {loading ? "Buscando questões..." : "Buscar Quiz"}
+        {user ? (
+          <>
+            <Button onClick={handleStartQuiz} disabled={loading}>
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {loading ? "Buscando questões..." : "Buscar Quiz"}
+            </Button>
+
+            {questions.length > 0 && (
+              <DialogQuiz
+                questions={questions}
+                open={openQuiz}
+                onOpenChange={setOpenQuiz}
+              />
+            )}
+          </>
+        ) : (
+          <Button onClick={() => setOpenRegister(true)}>
+            Buscar Quiz
           </Button>
+        )}
 
-          {questions.length > 0 && (
-            <DialogQuiz
-              questions={questions}
-              open={openQuiz}
-              onOpenChange={setOpenQuiz}
-            />
-          )}
+        <Dialog open={openRegister} onOpenChange={setOpenRegister}>
+          <DialogContent className="sm:max-w-sm">
+            <DialogHeader>
+              <DialogTitle>
+                Opa! Parece que você não está logado.
+              </DialogTitle>
+
+              <DialogDescription>
+                Cadastre-se para continuar!
+              </DialogDescription>
+            </DialogHeader>
+
+            <DialogFooter>
+              <Link href="/login" className="w-full">
+                <Button className="w-full" variant="outline">
+                  Já tenho conta!
+                </Button>
+              </Link>
+              <Link href="/cadastro" className="w-full">
+                <Button className="w-full" variant="outline">
+                  Vou criar uma!
+                </Button>
+              </Link>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+      </div>
+      {user && (
+        <>
+          <p className="">Mude as perguntas públicas!</p>
+          <div className="flex flex-wrap gap-6 justify-center items-center">
+            {userQuestions.map((question, index) => (
+              <QuestionCard
+                key={question.id ?? `new-${index}`}
+                question={question}
+                onDelete={(question) => {
+                  setUserQuestions((prev) =>
+                    prev.filter((q) => q !== question)
+                  );
+                }}
+                onCreated={(oldQuestion, newQuestion) => {
+                  setUserQuestions((prev) =>
+                    prev.map((q) => (q === oldQuestion ? newQuestion : q))
+                  );
+                }}
+              />
+            ))}
+            <Button
+              className="h-4 w-4 p-7 flex flex-col bg-white items-center justify-center gap-2"
+              onClick={handleCreateQuestion}
+            >
+              <span className="text-4xl text-">+</span>
+            </Button>
+          </div>
         </>
-      ) : (
-        <Button onClick={() => setOpenRegister(true)}>
-          Buscar Quiz
-        </Button>
       )}
-
-      <Dialog open={openRegister} onOpenChange={setOpenRegister}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>
-              Opa! Parece que você não está logado.
-            </DialogTitle>
-
-            <DialogDescription>
-              Cadastre-se para continuar!
-            </DialogDescription>
-          </DialogHeader>
-
-          <DialogFooter>
-            <Link href="/login" className="w-full">
-              <Button className="w-full" variant="outline">
-                Já tenho conta!
-              </Button>
-            </Link>
-            <Link href="/cadastro" className="w-full">
-              <Button className="w-full" variant="outline">
-                Vou criar uma!
-              </Button>
-            </Link>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
